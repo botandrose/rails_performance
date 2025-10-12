@@ -236,13 +236,10 @@ if (autoupdateDashboard) {
         // Append new data points to charts
         if (lastDashboardData) {
           // Find new data points that weren't in the last fetch
-          // Filter out the last point if it's zero (likely incomplete current minute)
           const newThroughputPoints = data.throughput
-            .filter(point => point[0] > lastDashboardData.lastThroughputTime)
-            .filter((point, idx, arr) => idx < arr.length - 1 || point[1] > 0);
+            .filter(point => point[0] > lastDashboardData.lastThroughputTime);
           const newResponseTimePoints = data.response_time
-            .filter(point => point[0] > lastDashboardData.lastResponseTime)
-            .filter((point, idx, arr) => idx < arr.length - 1 || point[1] > 0);
+            .filter(point => point[0] > lastDashboardData.lastResponseTime);
 
           if (newThroughputPoints.length > 0) {
             ApexCharts.exec('throughput_report_chart', 'appendData', [{
