@@ -242,14 +242,32 @@ if (autoupdateDashboard) {
             .filter(point => point[0] > lastDashboardData.lastResponseTime);
 
           if (newThroughputPoints.length > 0) {
+            const throughputChart = ApexCharts.getChartByID('throughput_report_chart');
+            if (throughputChart) {
+              const windowStart = Date.now() - (4 * 60 * 60 * 1000); // 4 hours
+              const seriesData = throughputChart.w.config.series[0].data;
+              // Remove old points directly from the array
+              while (seriesData.length > 0 && seriesData[0][0] < windowStart) {
+                seriesData.shift();
+              }
+            }
             ApexCharts.exec('throughput_report_chart', 'appendData', [{
               data: newThroughputPoints
-            }]);
+            }], false);
           }
           if (newResponseTimePoints.length > 0) {
+            const responseChart = ApexCharts.getChartByID('response_time_report_chart');
+            if (responseChart) {
+              const windowStart = Date.now() - (4 * 60 * 60 * 1000); // 4 hours
+              const seriesData = responseChart.w.config.series[0].data;
+              // Remove old points directly from the array
+              while (seriesData.length > 0 && seriesData[0][0] < windowStart) {
+                seriesData.shift();
+              }
+            }
             ApexCharts.exec('response_time_report_chart', 'appendData', [{
               data: newResponseTimePoints
-            }]);
+            }], false);
           }
         } else {
           // First load, use updateSeries
@@ -317,9 +335,18 @@ if (autoupdateResources) {
             const newPoints = chart.data.filter(point => point[0] > cachedLastTime);
 
             if (newPoints.length > 0) {
+              const resourceChart = ApexCharts.getChartByID(chart.id);
+              if (resourceChart) {
+                const windowStart = Date.now() - (24 * 60 * 60 * 1000); // 24 hours
+                const seriesData = resourceChart.w.config.series[0].data;
+                // Remove old points directly from the array
+                while (seriesData.length > 0 && seriesData[0][0] < windowStart) {
+                  seriesData.shift();
+                }
+              }
               ApexCharts.exec(chart.id, 'appendData', [{
                 data: newPoints
-              }]);
+              }], false);
             }
           } else {
             // First load, use updateSeries
