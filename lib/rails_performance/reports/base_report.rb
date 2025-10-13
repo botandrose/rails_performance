@@ -72,7 +72,7 @@ module RailsPerformance
           offset = 0 # RailsPerformance::Reports::BaseReport.time_in_app_time_zone(now).utc_offset
           current = stop - duration
 
-          while current <= stop
+          while current < stop
             current.strftime(RailsPerformance::FORMAT)
             result[(current.to_i + offset) * 1000] = nil
             current += 1.minute
