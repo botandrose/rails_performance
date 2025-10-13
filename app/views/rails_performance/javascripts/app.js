@@ -233,41 +233,71 @@ if (autoupdateDashboard) {
           p99Element.textContent = formatMs(data.percentile.p99);
         }
 
-        // Append new data points to charts
+        // Surgically update chart data
         if (lastDashboardData) {
-          // Find new data points that weren't in the last fetch
-          const newThroughputPoints = data.throughput
-            .filter(point => point[0] > lastDashboardData.lastThroughputTime);
-          const newResponseTimePoints = data.response_time
-            .filter(point => point[0] > lastDashboardData.lastResponseTime);
+          const throughputChart = ApexCharts.getChartByID('throughput_report_chart');
+          const responseChart = ApexCharts.getChartByID('response_time_report_chart');
 
-          if (newThroughputPoints.length > 0) {
-            const throughputChart = ApexCharts.getChartByID('throughput_report_chart');
-            if (throughputChart) {
-              const windowStart = Date.now() - (4 * 60 * 60 * 1000); // 4 hours
-              const seriesData = throughputChart.w.config.series[0].data;
-              // Remove old points directly from the array
-              while (seriesData.length > 0 && seriesData[0][0] < windowStart) {
-                seriesData.shift();
-              }
+          if (throughputChart) {
+            const seriesData = throughputChart.w.config.series[0].data;
+            const windowStart = Date.now() - (4 * 60 * 60 * 1000); // 4 hours
+
+            // Remove old points outside the window
+            while (seriesData.length > 0 && seriesData[0][0] < windowStart) {
+              seriesData.shift();
             }
-            ApexCharts.exec('throughput_report_chart', 'appendData', [{
-              data: newThroughputPoints
-            }], false);
+
+            // Update existing points and find new ones
+            const newPoints = [];
+            data.throughput.forEach(point => {
+              const existingIndex = seriesData.findIndex(p => p[0] === point[0]);
+              if (existingIndex >= 0) {
+                // Update existing point if value changed
+                if (seriesData[existingIndex][1] !== point[1]) {
+                  seriesData[existingIndex][1] = point[1];
+                }
+              } else if (point[0] > lastDashboardData.lastThroughputTime) {
+                // New point
+                newPoints.push(point);
+              }
+            });
+
+            if (newPoints.length > 0) {
+              ApexCharts.exec('throughput_report_chart', 'appendData', [{
+                data: newPoints
+              }], false);
+            }
           }
-          if (newResponseTimePoints.length > 0) {
-            const responseChart = ApexCharts.getChartByID('response_time_report_chart');
-            if (responseChart) {
-              const windowStart = Date.now() - (4 * 60 * 60 * 1000); // 4 hours
-              const seriesData = responseChart.w.config.series[0].data;
-              // Remove old points directly from the array
-              while (seriesData.length > 0 && seriesData[0][0] < windowStart) {
-                seriesData.shift();
-              }
+
+          if (responseChart) {
+            const seriesData = responseChart.w.config.series[0].data;
+            const windowStart = Date.now() - (4 * 60 * 60 * 1000); // 4 hours
+
+            // Remove old points outside the window
+            while (seriesData.length > 0 && seriesData[0][0] < windowStart) {
+              seriesData.shift();
             }
-            ApexCharts.exec('response_time_report_chart', 'appendData', [{
-              data: newResponseTimePoints
-            }], false);
+
+            // Update existing points and find new ones
+            const newPoints = [];
+            data.response_time.forEach(point => {
+              const existingIndex = seriesData.findIndex(p => p[0] === point[0]);
+              if (existingIndex >= 0) {
+                // Update existing point if value changed
+                if (seriesData[existingIndex][1] !== point[1]) {
+                  seriesData[existingIndex][1] = point[1];
+                }
+              } else if (point[0] > lastDashboardData.lastResponseTime) {
+                // New point
+                newPoints.push(point);
+              }
+            });
+
+            if (newPoints.length > 0) {
+              ApexCharts.exec('response_time_report_chart', 'appendData', [{
+                data: newPoints
+              }], false);
+            }
           }
         } else {
           // First load, use updateSeries
