@@ -2,7 +2,7 @@ require_relative "base_controller"
 
 module RailsPerformance
   class RailsPerformanceController < RailsPerformance::BaseController
-    protect_from_forgery except: :recent
+    protect_from_forgery except: [:recent, :index, :resources]
 
     if RailsPerformance.enabled
       def index
@@ -12,6 +12,17 @@ module RailsPerformance
         @throughput_report_data = RailsPerformance::Reports::ThroughputReport.new(db).data
         @response_time_report_data = RailsPerformance::Reports::ResponseTimeReport.new(db).data
         @percentile_report_data = RailsPerformance::Reports::PercentileReport.new(db).data
+
+        respond_to do |format|
+          format.html
+          format.js do
+            render json: {
+              throughput: @throughput_report_data,
+              response_time: @response_time_report_data,
+              percentile: @percentile_report_data
+            }
+          end
+        end
       end
 
       def resources
@@ -19,6 +30,19 @@ module RailsPerformance
         db = @datasource.db
 
         @resources_report = RailsPerformance::Reports::ResourcesReport.new(db)
+
+        respond_to do |format|
+          format.html
+          format.js do
+            render json: {
+              charts: @resources_report.servers.flat_map do |server|
+                server.charts.map do |chart|
+                  { id: chart.id, data: chart.data }
+                end
+              end
+            }
+          end
+        end
       end
 
       def summary

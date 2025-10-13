@@ -46,7 +46,7 @@ module RailsPerformance
         end
 
         # add blank columns
-        while current <= stop
+        while current < stop
           key = current.strftime(RailsPerformance::FORMAT)
           views = all[key].presence || 0
           @data << [(current.to_i + offset) * 1000, views.round(2)]
